@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyStudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+<style>
+:root{--bg:#0b1020;--panel:#11182a;--panel2:#151e32;--line:#27324a;--text:#e8edf8;--muted:#8c9ab5;--accent:#70e1c1;--blue:#8ba8ff;--orange:#ffbf69}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100vh;overflow:hidden}
+.app{height:100vh;display:flex;flex-direction:column}.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line);background:#0e1424;gap:16px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:.2px}.logo{height:34px;width:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#70e1c1,#8ba8ff);color:#0b1020;font-size:19px;font-weight:800}.brand small{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:1.3px;margin-top:2px}
+.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.pill{border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:8px 11px;border-radius:8px;font-size:12px}
+button{font:inherit;cursor:pointer;border:0}.btn{padding:9px 13px;border-radius:8px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}.run{background:var(--accent);color:#08221b}.secondary{background:var(--panel2);border:1px solid var(--line);color:var(--text)}.main{flex:1;min-height:0;display:grid;grid-template-columns:210px minmax(300px,1.15fr) minmax(300px,.85fr);gap:1px;background:var(--line)}
+.sidebar,.workspace,.rightpane{background:var(--bg);min-height:0;display:flex;flex-direction:column}.sidebar{background:#0e1424;padding:18px 12px}.section-label{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#64738f;margin:4px 10px 12px}.project{display:flex;align-items:center;gap:9px;padding:10px;border-radius:8px;font-size:13px;cursor:pointer;user-select:none}.project:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.project:hover{background:#172239}.project.active{background:#1a2840;color:var(--accent)}.project .file-icon{color:#ffcf70;font-size:16px}.side-card{margin-top:auto;padding:13px;border:1px solid var(--line);border-radius:10px;background:#11182a;font-size:12px;color:var(--muted);line-height:1.6}.side-card strong{color:var(--text);display:block;margin-bottom:5px}
+.panel-head{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#101729;border-bottom:1px solid var(--line);font-size:12px}.tab{height:100%;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--accent);color:var(--text);font-weight:600}.subtle{color:var(--muted)}.editor-wrap{flex:1;min-height:0;overflow:hidden}.CodeMirror{height:100%;font:13px/1.75 'JetBrains Mono',monospace;background:#0b1020;color:#e8edf8;padding:12px 0}.CodeMirror-gutters{background:#0b1020;border-right:1px solid #1c2740}.CodeMirror-linenumber{color:#52617e}.CodeMirror-cursor{border-left:2px solid var(--accent)}.editor-footer{height:30px;padding:0 13px;background:#101729;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;color:#7d8ba5;font-size:10px}
+.rightpane{background:#0d1322}.right-content{flex:1;min-height:0;display:flex;flex-direction:column}.console{height:47%;min-height:140px;display:flex;flex-direction:column;border-bottom:1px solid var(--line)}.preview{flex:1;min-height:140px;display:flex;flex-direction:column}.subhead{height:39px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:11px;font-weight:700;letter-spacing:.6px;color:#9eabc4;background:#101729}.subhead button{color:#8291ad;background:transparent;font-size:11px}.console-output{padding:14px;overflow:auto;white-space:pre-wrap;font:12px/1.7 'JetBrains Mono',monospace;color:#cbd5e8;flex:1}.placeholder{color:#65738e}.console-output .success{color:var(--accent)}.console-output .error{color:#ff8f9b}.preview-frame{border:0;width:100%;height:100%;background:white;flex:1}.preview-empty{flex:1;display:grid;place-items:center;text-align:center;padding:20px;color:#7f8da8;font-size:12px;line-height:1.7}.preview-empty span{font-size:27px;display:block;margin-bottom:8px}
+.webcam-panel{height:245px;flex:0 0 245px;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:#0d1322;min-height:0;margin:10px 0;overflow:hidden}
+.webcam-body{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:8px;min-height:0;flex:1}
+.webcam-video-wrap{position:relative;flex:1;min-width:0;min-height:90px;height:100%;background:#050811;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:grid;place-items:center}
+#webcamVideo{width:100%;height:100%;object-fit:cover;display:block}
+.webcam-placeholder{font-size:11px;color:var(--muted);text-align:center;padding:8px}
+.webcam-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:0 0 auto}
+.webcam-actions button{font-size:10px;padding:7px 6px;justify-content:center}
+.webcam-status{font-size:9px;color:var(--muted);padding:0 8px 8px;line-height:1.4}
+@media(max-width:900px){.sidebar{display:flex;flex-direction:column}.webcam-panel{height:245px;flex-basis:245px}.webcam-body{gap:8px}.webcam-actions button{padding:8px}}
+
+.bottom-bar{height:28px;background:#101729;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:10px;color:#73819b}.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:6px}
+@media(max-width:900px){body{height:auto;min-height:100vh;overflow:auto}.app{height:auto;min-height:100vh}.main{grid-template-columns:1fr;display:flex;flex-direction:column}.sidebar{display:none}.workspace{height:55vh;min-height:380px}.rightpane{height:65vh;min-height:450px}.topbar{padding:0 12px}.pill{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand"><div class="logo">Py</div><div>PyStudio<small>PYTHON WEB IDE | SMP ISLAM MIFTAHUL HUDA</small></div></div>
+  <div class="top-actions"><span class="pill">● Python 3 · Browser runtime</span><button class="btn secondary" id="loadBtn">↑ Ambil File</button><input type="file" id="fileInput" accept=".py,.html,.txt" hidden><button class="btn secondary" id="resetBtn">↺ Reset</button><button class="btn secondary" id="saveBtn">↓ Simpan</button><button class="btn run" id="runBtn">▶ Jalankan</button></div>
+</header>
+<main class="main">
+  <aside class="sidebar">
+    <div class="section-label">WORKSPACE</div>
+    <div class="project active" data-file="main.py" role="button" tabindex="0"><span class="file-icon">◆</span><span>main.py</span></div>
+    <div class="project" data-file="preview.html" role="button" tabindex="0"><span style="color:#8ba8ff">▧</span><span>preview.html</span></div>
+    <div class="section-label" style="margin-top:28px">TOOLS</div>
+    <div class="project"><span>⌘</span><span>Python Console</span></div>
+    <div class="project"><span>◫</span><span>Live Preview</span></div>
+      <section class="webcam-panel" aria-label="Web Camera">
+        <div class="subhead"><span>◉&nbsp; WEB CAMERA</span><span id="webcamIndicator">Kamera mati</span></div>
+        <div class="webcam-body">
+          <div class="webcam-video-wrap">
+            <video id="webcamVideo" autoplay playsinline muted hidden></video>
+            <div class="webcam-placeholder" id="webcamPlaceholder">📷<br>Kamera belum diaktifkan</div>
+          </div>
+          <div class="webcam-actions">
+            <button class="btn run" id="startWebcamBtn">▶ Aktifkan</button>
+            <button class="btn secondary" id="stopWebcamBtn" disabled>■ Matikan</button>
+            <button class="btn secondary" id="snapWebcamBtn" disabled>◎ Foto</button>
+          </div>
+        </div>
+        <div class="webcam-status" id="webcamStatus">Izinkan akses kamera saat diminta oleh browser.</div>
+      </section>
+    <div class="side-card"><strong>✦ Ruang eksplorasi</strong>Tulis kode Python, jalankan, lalu amati hasilnya. Runtime Python dimuat di browser.</div>
+  </aside>
+  <section class="workspace">
+    <div class="panel-head"><div class="tab"><span style="color:#ffcf70">◆</span> main.py <span class="subtle">×</span></div><span class="subtle">Python</span></div>
+    <div class="editor-wrap"><textarea id="code"># Selamat datang di PyStudio!
+# Coba jalankan program Python pertamamu.
+
+nama = "Dunia"
+angka = [10, 20, 30, 40, 50]
+
+print(f"Halo, {nama}! 👋")
+print("Data:", angka)
+print("Jumlah data:", len(angka))
+print("Total:", sum(angka))
+
+# HTML dengan variabel Python
+html = f"""
+<div style="font-family:Arial;padding:24px;color:#172554;
+            background:#eff6ff;border-radius:12px">
+
+  <h1 style="color:#2563eb">
+    Halo dari Python, {nama}! 🚀
+  </h1>
+
+  <p>Selamat datang, {nama}!</p>
+  <p>Ini adalah contoh hasil visual yang dirender
+     di panel preview.</p>
+
+  <h3>Data angka: {angka}</h3>
+  <p>Jumlah data: {len(angka)}</p>
+  <p>Total: {sum(angka)}</p>
+
+  <button style="background:#2563eb;color:white;
+                 border:0;padding:10px 16px;
+                 border-radius:8px;cursor:pointer">
+    Halo, {nama}!
+  </button>
+
+</div>
+"""</textarea></div>
+    <div class="editor-footer"><span>Ln <span id="lineNo">1</span>, Col <span id="colNo">1</span></span><span>UTF-8&nbsp;&nbsp; · &nbsp;&nbsp;Spaces: 4</span></div>
+  </section>
+  <section class="rightpane">
+    <div class="panel-head"><div class="tab">◉ Hasil &amp; Preview</div><span class="subtle" id="runtimeStatus">Runtime siap dimuat</span></div>
+    <div class="right-content">
+      <div class="console"><div class="subhead"><span>›&nbsp; CONSOLE OUTPUT</span><button id="clearBtn">Bersihkan</button></div><div class="console-output" id="output"><span class="placeholder">Output program akan muncul di sini setelah tombol Jalankan ditekan.</span></div></div>
+      <div class="preview"><div class="subhead"><span>▣&nbsp; LIVE PREVIEW</span><button id="previewBtn">Muat preview</button></div><div id="previewArea" class="preview-empty"><div><span>◫</span>Pratinjau visual muncul di sini.<br>Gunakan variabel <code>html</code> pada kode Python.</div></div></div>
+    </div>
+  </section>
+</main>
+<footer class="bottom-bar"><span><i class="status-dot"></i>Siap digunakan</span><span>PyStudio Web · Prototype</span></footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script>
+const editor=CodeMirror.fromTextArea(document.getElementById('code'),{mode:'python',theme:'dracula',lineNumbers:true,indentUnit:4,tabSize:4,indentWithTabs:false,lineWrapping:true,viewportMargin:Infinity});
+const output=document.getElementById('output'), status=document.getElementById('runtimeStatus');
+let pyodide=null, running=false;
+// Setiap item Workspace membuka buffer file masing-masing di editor.
+const starterPython = editor.getValue();
+const starterHtml = `<!DOCTYPE html>
+<html lang="id">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Preview</title></head>
+<body style="font-family:Arial,sans-serif;padding:24px;color:#172554">
+  <h1>Halo dari preview.html!</h1>
+  <p>Edit HTML ini, lalu simpan atau gunakan tombol preview untuk melihat hasilnya.</p>
+</body>
+</html>`;
+const fileBuffers = Object.assign(Object.create(null), {'main.py': starterPython, 'preview.html': starterHtml});
+let activeFile = 'main.py';
+function openWorkspaceFile(name){
+  if(!Object.prototype.hasOwnProperty.call(fileBuffers,name)) return;
+  fileBuffers[activeFile] = editor.getValue();
+  activeFile = name;
+  document.querySelectorAll('.project[data-file]').forEach(item=>{
+    const active=item.dataset.file===name;
+    item.classList.toggle('active',active);
+    item.setAttribute('aria-current',active?'page':'false');
+  });
+  editor.setValue(fileBuffers[name]);
+  editor.setOption('mode',name.endsWith('.html')?'htmlmixed':'python');
+  document.querySelector('.panel-head .tab').innerHTML = `<span style="color:${name.endsWith('.html')?'#8ba8ff':'#ffcf70'}">${name.endsWith('.html')?'▧':'◆'}</span> ${name} <span class="subtle">×</span>`;
+  document.querySelector('.panel-head .subtle').textContent = name.endsWith('.html')?'HTML':'Python';
+  document.getElementById('lineNo').textContent='1';
+  document.getElementById('colNo').textContent='1';
+  status.textContent='Membuka '+name;
+  editor.focus();
+}
+document.querySelectorAll('.project[data-file]').forEach(item=>{
+  item.addEventListener('click',()=>openWorkspaceFile(item.dataset.file));
+  item.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openWorkspaceFile(item.dataset.file);}});
+});
+editor.on('change',()=>{if(typeof activeFile!=='undefined' && typeof fileBuffers!=='undefined')fileBuffers[activeFile]=editor.getValue()});
+editor.on('cursorActivity',()=>{const c=editor.getCursor();document.getElementById('lineNo').textContent=c.line+1;document.getElementById('colNo').textContent=c.ch+1});
+function setOutput(text,kind=''){output.innerHTML='';const span=document.createElement('span');span.className=kind;span.textContent=text||'(Program selesai tanpa output.)';output.appendChild(span)}
+async function runCode(){
+ fileBuffers[activeFile]=editor.getValue();
+ const ext=activeFile.toLowerCase().split('.').pop();
+ // HTML files should be rendered in the preview, not interpreted as Python.
+ if(ext==='html'){
+  showPreview(editor.getValue());
+  setOutput('File '+activeFile+' ditampilkan di Live Preview.','success');
+  status.textContent='Preview HTML diperbarui';
+  return;
+ }
+ if(ext!=='py'){
+  setOutput('File '+activeFile+' adalah file .'+ext+'. Tombol Jalankan hanya menjalankan file Python (.py) atau menampilkan HTML (.html).','error');
+  status.textContent='Jenis file tidak dapat dijalankan';
+  return;
+ }
+ if(running)return;running=true;document.getElementById('runBtn').textContent='… Menjalankan';setOutput('Memuat runtime Python di browser…','placeholder');status.textContent='Memulai Python…';
+ try{
+  if(!pyodide){pyodide=await loadPyodide();status.textContent='Python siap';}
+  let stdout='',stderr='';pyodide.setStdout({batched:s=>stdout+=s+'\n'});pyodide.setStderr({batched:s=>stderr+=s+'\n'});
+  const code=editor.getValue();
+  await pyodide.runPythonAsync(code);
+  setOutput(stdout.trimEnd()+(stderr?'\n'+stderr.trimEnd():''),stderr?'error':'success');
+  try{const hasHtml=await pyodide.runPythonAsync(" 'html' in globals() and isinstance(html, str) ");if(hasHtml){const h=await pyodide.runPythonAsync("html");showPreview(h)}}
+  catch(e){}
+ }catch(e){setOutput(String(e).replace(/^PythonError:\s*/,'').trim(),'error');status.textContent='Ada kesalahan'}
+ finally{running=false;document.getElementById('runBtn').textContent='▶ Jalankan'}
+}
+function showPreview(markup){const area=document.getElementById('previewArea');area.innerHTML='';const frame=document.createElement('iframe');frame.className='preview-frame';frame.setAttribute('sandbox','allow-scripts');area.appendChild(frame);frame.srcdoc=markup}
+
+// Web Camera: akses kamera melalui izin browser (biasanya perlu HTTPS atau localhost).
+let webcamStream = null;
+const webcamVideo = document.getElementById('webcamVideo');
+const webcamStatus = document.getElementById('webcamStatus');
+const webcamIndicator = document.getElementById('webcamIndicator');
+const webcamPlaceholder = document.getElementById('webcamPlaceholder');
+const startWebcamBtn = document.getElementById('startWebcamBtn');
+const stopWebcamBtn = document.getElementById('stopWebcamBtn');
+const snapWebcamBtn = document.getElementById('snapWebcamBtn');
+
+startWebcamBtn.addEventListener('click', async () => {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    webcamStatus.textContent = 'Kamera tidak didukung pada konteks ini. Buka halaman melalui HTTPS atau localhost.';
+    webcamIndicator.textContent = 'Tidak tersedia';
+    return;
+  }
+  startWebcamBtn.disabled = true;
+  webcamStatus.textContent = 'Meminta izin kamera…';
+  try {
+    webcamStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user' },
+      audio: false
+    });
+    webcamVideo.srcObject = webcamStream;
+    webcamVideo.hidden = false;
+    webcamPlaceholder.hidden = true;
+    webcamIndicator.textContent = 'Kamera aktif';
+    webcamStatus.textContent = 'Kamera aktif. Klik Foto untuk menyimpan gambar.';
+    stopWebcamBtn.disabled = false;
+    snapWebcamBtn.disabled = false;
+  } catch (error) {
+    const messages = {
+      NotAllowedError: 'Akses kamera ditolak. Izinkan kamera pada pengaturan browser.',
+      NotFoundError: 'Kamera tidak ditemukan pada perangkat ini.',
+      NotReadableError: 'Kamera sedang digunakan aplikasi lain.'
+    };
+    webcamStatus.textContent = messages[error.name] || ('Kamera gagal dibuka: ' + error.message);
+    webcamIndicator.textContent = 'Gagal dibuka';
+  } finally {
+    startWebcamBtn.disabled = false;
+  }
+});
+
+stopWebcamBtn.addEventListener('click', () => {
+  if (webcamStream) webcamStream.getTracks().forEach(track => track.stop());
+  webcamStream = null;
+  webcamVideo.srcObject = null;
+  webcamVideo.hidden = true;
+  webcamPlaceholder.hidden = false;
+  webcamIndicator.textContent = 'Kamera mati';
+  webcamStatus.textContent = 'Kamera dimatikan.';
+  stopWebcamBtn.disabled = true;
+  snapWebcamBtn.disabled = true;
+});
+
+snapWebcamBtn.addEventListener('click', () => {
+  if (!webcamStream || !webcamVideo.videoWidth) {
+    webcamStatus.textContent = 'Tunggu sampai gambar kamera tampil, lalu coba lagi.';
+    return;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = webcamVideo.videoWidth;
+  canvas.height = webcamVideo.videoHeight;
+  canvas.getContext('2d').drawImage(webcamVideo, 0, 0, canvas.width, canvas.height);
+  canvas.toBlob(blob => {
+    if (!blob) {
+      webcamStatus.textContent = 'Foto gagal dibuat. Silakan coba lagi.';
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'web-camera-' + new Date().toISOString().replace(/[:.]/g, '-') + '.png';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    webcamStatus.textContent = 'Foto berhasil disiapkan untuk disimpan.';
+  }, 'image/png');
+});
+
+window.addEventListener('beforeunload', () => {
+  if (webcamStream) webcamStream.getTracks().forEach(track => track.stop());
+});
+
+document.getElementById('runBtn').addEventListener('click',runCode);
+document.getElementById('clearBtn').addEventListener('click',()=>setOutput('Console dibersihkan.','placeholder'));
+document.getElementById('previewBtn').addEventListener('click',async()=>{if(activeFile==='preview.html'){showPreview(editor.getValue());return}if(!pyodide){await runCode();return}try{const h=await pyodide.runPythonAsync("html if 'html' in globals() and isinstance(html, str) else ''");if(h)showPreview(h);else document.getElementById('previewArea').innerHTML='<div class="preview-empty">Belum ada variabel <code>html</code> bertipe string.</div>'}catch(e){document.getElementById('previewArea').innerHTML='<div class="preview-empty">Jalankan kode Python terlebih dahulu.</div>'}});
+document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('Kembalikan kode ke contoh awal?'))location.reload()});
+document.getElementById('loadBtn').addEventListener('click',()=>document.getElementById('fileInput').click());
+function addWorkspaceFile(name){
+  // Reuse an existing entry if the same filename is imported again.
+  let item=Array.from(document.querySelectorAll('.project[data-file]')).find(el=>el.dataset.file===name);
+  if(!item){
+    item=document.createElement('div');
+    item.className='project';
+    item.dataset.file=name;
+    item.setAttribute('role','button');
+    item.tabIndex=0;
+    const icon=document.createElement('span');
+    icon.className='file-icon';
+    icon.textContent=name.toLowerCase().endsWith('.html')?'▧':'◆';
+    if(name.toLowerCase().endsWith('.html'))icon.style.color='#8ba8ff';
+    const label=document.createElement('span');
+    label.textContent=name;
+    label.style.overflow='hidden';
+    label.style.textOverflow='ellipsis';
+    label.style.whiteSpace='nowrap';
+    item.append(icon,label);
+    const toolsLabel=Array.from(document.querySelectorAll('.section-label')).find(el=>el.textContent.trim()==='TOOLS');
+    document.querySelector('.sidebar').insertBefore(item,toolsLabel);
+    item.addEventListener('click',()=>openWorkspaceFile(name));
+    item.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openWorkspaceFile(name);}});
+  }
+  return item;
+}
+document.getElementById('fileInput').addEventListener('change',async(event)=>{
+ const file=event.target.files && event.target.files[0];
+ if(!file)return;
+ try{
+  const content=await file.text();
+  const name=file.name;
+  fileBuffers[name]=content;
+  addWorkspaceFile(name);
+  openWorkspaceFile(name);
+  setOutput('File '+name+' berhasil ditambahkan ke WORKSPACE dan dibuka di Code Editor.','success');
+  if(name.toLowerCase().endsWith('.html')) status.textContent='File HTML siap diedit';
+  else status.textContent='File '+name+' siap diedit';
+ }catch(err){
+  setOutput('Gagal membaca file: '+err.message,'error');
+ }finally{
+  event.target.value='';
+ }
+});
+document.getElementById('saveBtn').addEventListener('click',()=>{fileBuffers[activeFile]=editor.getValue();const isHtml=activeFile.endsWith('.html');const blob=new Blob([editor.getValue()],{type:isHtml?'text/html;charset=utf-8':'text/x-python;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=activeFile;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
+editor.setSize('100%','100%');
+</script>
+<script>
+/* Load Python runtime only when Run is clicked. */
+async function loadPyodide(){
+ status.textContent='Mengunduh runtime Python…';
+ const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js';
+ document.head.appendChild(s);
+ await new Promise((resolve,reject)=>{s.onload=resolve;s.onerror=()=>reject(new Error('Runtime Python gagal dimuat. Periksa koneksi internet.'))});
+ return await window.loadPyodide();
+}
+
+
+
+
+
+async function bukaFile(url) {
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Your file couldn’t be accessed.");
+        }
+
+        const isiFile = await response.text();
+
+        // Proses isi file di sini
+        console.log(isiFile);
+
+    } catch (error) {
+        alert(
+            "Aplikasi bisa berjalan Intenet Aktif | SMP ISLAM MIFTAHUL HUDA"
+        );
+    }
+}
+
+</script>
+</body>
+</html>
